@@ -58,9 +58,7 @@ public class ClientHandler extends Thread {
     }
 
     private void publish(String body) {
-        int length = body.getBytes().length;
-        System.out.println(body);
-        dout.println(length + "-" + body);
+        dout.println(body);
         dout.flush();
     }
 

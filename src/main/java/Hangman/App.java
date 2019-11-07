@@ -8,8 +8,5 @@ import Hangman.net.Server;
  */
 public class App 
 {
-    public static void main( String[] args )
-    {
-        new Server();
-    }
+    public static void main( String[] args ) { new Server(); }
 }

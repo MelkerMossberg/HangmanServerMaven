@@ -1,5 +1,7 @@
 package Hangman.game;
 
+import org.json.simple.JSONObject;
+
 import java.util.ArrayList;
 
 class GameState {
@@ -44,19 +46,24 @@ class GameState {
     public void registerIncorrectGuess(String letter){
         this.guessedLetters.add(letter);
         this.livesLeft--;
-        System.out.print("Attemps left: " + livesLeft);
+        System.out.println("Attemps left: " + livesLeft);
         this.lastGuessWasCorrect = false;
     }
 
-    public String packageIntoAString() {
-        StringBuilder sb = new StringBuilder();
-        String prevGuesses = guessedLetters.toString();
-        String hiddenWord = buildHiddenWord();
-        return state + "-" + gameScore + "-" + livesLeft  + "-"+ numCorrectGuesses + "-"+ prevGuesses +"-" +lastGuessWasCorrect +"-"+ previousWord + "-" + hiddenWord;
-    }
+    public String packageJSON(){
+        JSONObject gameStateDetails = new JSONObject();
+        gameStateDetails.put("state", state);
+        gameStateDetails.put("score", gameScore);
+        gameStateDetails.put("livesLeft", livesLeft);
+        gameStateDetails.put("numCorrect", numCorrectGuesses);
+        gameStateDetails.put("prevGuesses", guessedLetters.toString());
+        gameStateDetails.put("prevWord", previousWord);
+        gameStateDetails.put("hiddenWord", buildHiddenWord());
 
-    public String writeJSON(){
-        return "";
+        JSONObject gameState = new JSONObject();
+        gameState.put("gameState", gameStateDetails);
+
+        return gameState.toJSONString();
     }
 
     private String buildHiddenWord() {

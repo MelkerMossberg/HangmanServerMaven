@@ -23,10 +23,10 @@ public class GameHandler {
     private String validateWordGuess(String userInput) {
         if (userInput.equals(gameState.word)){
             startAnotherGame("WIN");
-            return gameState.packageIntoAString();
+            return gameState.packageJSON();
         }else {
             startAnotherGame("LOST");
-            return gameState.packageIntoAString();
+            return gameState.packageJSON();
         }
     }
 
@@ -34,7 +34,7 @@ public class GameHandler {
         // ALREADY GUESSED THIS?
         boolean alreadyGuessedBefore = gameState.guessedLetters.contains(guess);
         if (alreadyGuessedBefore){
-            return gameState.packageIntoAString();
+            return gameState.packageJSON();
         }
         // DOES THE WORD CONTAINS MY GUESS?
         boolean wordContainsGuess = gameState.word.contains(guess);
@@ -44,26 +44,27 @@ public class GameHandler {
             // AND I WON THIS ROUND
             if (userGuessedAllLetters()){
                 startAnotherGame("WIN");
-                return gameState.packageIntoAString();
+                return gameState.packageJSON();
             }
             // BUT I LOST THE GAME
             if (toManyGuesses()){
                 startAnotherGame("LOST");
-                return gameState.packageIntoAString();
+                return gameState.packageJSON();
             }
         }
         // NO - THE GUESS WAS INCORRECT
         else{
-            // AND YOU LOST THE GAME
+
             gameState.registerIncorrectGuess(guess);
+            // AND YOU LOST THE GAME
             if (toManyGuesses()){
                 startAnotherGame("LOST");
-                return gameState.packageIntoAString();
+                return gameState.packageJSON();
             }
         }
         // STILL NOT WON OR LOST...
         gameState.state = "LETTER_GUESS";
-        return gameState.packageIntoAString();
+        return gameState.packageJSON();
     }
 
     private boolean userGuessedAllLetters() {
@@ -77,7 +78,7 @@ public class GameHandler {
     public String startFirstGame() {
         gameState = new GameState(RandomWord(), 0, null);
         gameState.state = "LETTER_GUESS";
-        return gameState.packageIntoAString();
+        return gameState.packageJSON();
     }
     public String startAnotherGame(String gameResult) {
         if (gameResult.equals("WIN")) gameState.gameScore++;
@@ -85,7 +86,7 @@ public class GameHandler {
 
         gameState = new GameState(RandomWord(), gameState.gameScore, gameState.word);
         gameState.state = gameResult;
-        return gameState.packageIntoAString(); //TODO: Nu skickas en sträng över TCP där varje key delas upp med "-". Borde hitta alternativ.
+        return gameState.packageJSON(); //TODO: Nu skickas en sträng över TCP där varje key delas upp med "-". Borde hitta alternativ.
     }
 
     private String RandomWord() {
