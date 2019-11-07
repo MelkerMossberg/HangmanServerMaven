@@ -21,7 +21,7 @@ class GameState {
         this.previousWord = previousWord;
         this.gameScore = gameScore;
         this.guessedLetters = new ArrayList<String>();
-        this.livesLeft = 3;      //START VALUE FOR ATTEMPS
+        this.livesLeft = word.toCharArray().length;      //START VALUE FOR ATTEMPS
         this.numCorrectGuesses = 0;
         this.numUniqueLetters = calcUniqueChars(word);
 
@@ -29,7 +29,6 @@ class GameState {
         for (int i = 0; i < theHiddenWord.length; i++ ){
             theHiddenWord[i] = '_';
         }
-
     }
 
     private int calcUniqueChars(String word) {
@@ -54,6 +53,7 @@ class GameState {
         JSONObject gameStateDetails = new JSONObject();
         gameStateDetails.put("state", state);
         gameStateDetails.put("score", gameScore);
+        gameStateDetails.put("totalLives", word.toCharArray().length);
         gameStateDetails.put("livesLeft", livesLeft);
         gameStateDetails.put("numCorrect", numCorrectGuesses);
         gameStateDetails.put("prevGuesses", guessedLetters.toString());

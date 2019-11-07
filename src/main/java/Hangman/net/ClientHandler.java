@@ -30,10 +30,10 @@ public class ClientHandler extends Thread {
     }
 
     public void run(){
-        String newGame = gameHandler.startFirstGame();
-        publish(newGame);
+        String newGameState = gameHandler.startFirstGame();
+        publish(newGameState);
         while (shouldRun){
-            String input = listenForResponse().toLowerCase();
+            String input = listenForResponse();
             if (input.equals("quit")) closeConnection();
             else {
                 String output = gameHandler.handle(input);
@@ -48,7 +48,7 @@ public class ClientHandler extends Thread {
             while(shouldRun){
                 if ((response = din.readLine()) != null){
                     System.out.println("Handler# "+this.getId()+" received: " + response);
-                    return response;
+                    return response.toLowerCase();
                 }
             }
         }catch (IOException e){

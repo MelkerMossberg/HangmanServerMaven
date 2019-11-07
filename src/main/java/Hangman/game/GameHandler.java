@@ -86,7 +86,7 @@ public class GameHandler {
 
         gameState = new GameState(RandomWord(), gameState.gameScore, gameState.word);
         gameState.state = gameResult;
-        return gameState.packageJSON(); //TODO: Nu skickas en sträng över TCP där varje key delas upp med "-". Borde hitta alternativ.
+        return gameState.packageJSON();
     }
 
     private String RandomWord() {
