@@ -52,8 +52,9 @@ public class ClientHandler extends Thread {
         publish("game",newGameState);
         while (shouldRun){
             String input = listenForResponse();
-            verifyJWT(jwt);
-            String inputBody = parseInput("body", input);
+            String inputJWT = parseInput("jwt", input);
+            verifyJWT(inputJWT);
+            String inputBody = parseInput("body", input).toLowerCase();
             int contentLength = Integer.parseInt(parseInput("content-length", input));
             controlLength(inputBody, contentLength);
             if (inputBody.equals("quit")) closeConnection();
@@ -99,6 +100,7 @@ public class ClientHandler extends Thread {
 
             Jwts.parser().setSigningKey(key).parseClaimsJws(jwt);
 
+
         } catch (JwtException e) {
             e.printStackTrace();
 
@@ -119,17 +121,22 @@ public class ClientHandler extends Thread {
     }
 
     private String login() {
+        String jwt = askForCredentials();
+        System.out.println(jwt);
+        if (jwt.equals("wrong")){
+            publish("login","Wrong username and password combo. Try again");
+            jwt = askForCredentials();
+        }
+        publish("loginSuccess", jwt);
+        return jwt;
+    }
+
+    private String askForCredentials() {
         publish("login","Username:");
         String username = parseInput("body",listenForResponse());
         publish("login","Password:");
         String password = parseInput("body",listenForResponse());
-        String jwt = verifyLogin(username, password);
-        if (jwt.equals("wrong")){
-            publish("login","Wrong username and password combo. Try again");
-            login();
-        }
-        publish("loginSuccess", jwt);
-        return jwt;
+        return verifyLogin(username, password);
     }
 
     private String verifyLogin(String username, String password) {
@@ -151,7 +158,7 @@ public class ClientHandler extends Thread {
             while(shouldRun){
                 if ((response = din.readLine()) != null){
                     System.out.println("Handler# "+this.getId()+" received: " + response);
-                    return response.toLowerCase();
+                    return response;
                 }
             }
         }catch (IOException e){
