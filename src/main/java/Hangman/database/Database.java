@@ -11,7 +11,6 @@ public class Database {
         password = "pass";
     }
 
-
     public String getUsername() {
         return username;
     }

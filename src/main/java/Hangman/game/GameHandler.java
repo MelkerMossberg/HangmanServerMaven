@@ -16,7 +16,6 @@ public class GameHandler {
     public String handle(String userInput){
         if(userInput.length() > 1)
             return validateWordGuess(userInput);
-
         return validateLetterGuess(userInput);
     }
 
@@ -54,7 +53,6 @@ public class GameHandler {
         }
         // NO - THE GUESS WAS INCORRECT
         else{
-
             gameState.registerIncorrectGuess(guess);
             // AND YOU LOST THE GAME
             if (toManyGuesses()){

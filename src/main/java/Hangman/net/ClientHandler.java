@@ -1,18 +1,12 @@
 package Hangman.net;
 
-import Hangman.database.Database;
 import Hangman.game.GameHandler;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.io.*;
 import java.net.Socket;
-import java.security.Key;
 
 
 public class ClientHandler extends Thread {
@@ -22,9 +16,8 @@ public class ClientHandler extends Thread {
     BufferedReader din;
     PrintWriter dout;
     GameHandler gameHandler;
+    AuthHandler authHandler;
     static volatile boolean shouldRun;
-    Key key;
-    Database db;
     JSONParser jsonParser;
 
 
@@ -33,10 +26,10 @@ public class ClientHandler extends Thread {
         this.socket = socket;
         this.server = server;
         shouldRun = true;
-        this.key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+       // this.key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
         this.jsonParser = new JSONParser();
-        this.db = new Database();
         this.gameHandler = new GameHandler(this);
+        this.authHandler = new AuthHandler(this);
         try{
             din = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             dout = new PrintWriter(socket.getOutputStream(), false);
@@ -46,14 +39,13 @@ public class ClientHandler extends Thread {
     }
 
     public void run(){
-        String jwt = login();
-
+        authHandler.login();
         String newGameState = gameHandler.startFirstGame();
         publish("game",newGameState);
         while (shouldRun){
             String input = listenForResponse();
             String inputJWT = parseInput("jwt", input);
-            verifyJWT(inputJWT);
+            authHandler.verifyJWT(inputJWT);
             String inputBody = parseInput("body", input).toLowerCase();
             int contentLength = Integer.parseInt(parseInput("content-length", input));
             controlLength(inputBody, contentLength);
@@ -89,27 +81,7 @@ public class ClientHandler extends Thread {
         return -1;
     }
 
-    private void verifyJWT(String jwt) {
-        try {
-            /**
-            / Testing with a faulty jwt token and a fauly key
-            **/
-            //Jwts.parser().setSigningKey(key).parseClaimsJws("eyjhbgcioijiuzi1nij9.eyjzdwiioijuzxn0in0.2ujspx3d7q41t5mvcuqlpnmdeyci77abyhjbt_qoxu4");
-            //Key fakeKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-            //Jwts.parser().setSigningKey(fakeKey).parseClaimsJws(jwt);
-
-            Jwts.parser().setSigningKey(key).parseClaimsJws(jwt);
-
-
-        } catch (JwtException e) {
-            e.printStackTrace();
-
-            closeConnection();
-            //don't trust the JWT!
-        }
-    }
-
-    private String parseInput(String selector, String input) {
+    String parseInput(String selector, String input) {
         Object JSONInput = null;
         try {
             JSONInput = jsonParser.parse(input);
@@ -120,39 +92,7 @@ public class ClientHandler extends Thread {
         return message.get(selector).toString();
     }
 
-    private String login() {
-        String jwt = askForCredentials();
-        System.out.println(jwt);
-        if (jwt.equals("wrong")){
-            publish("login","Wrong username and password combo. Try again");
-            jwt = askForCredentials();
-        }
-        publish("loginSuccess", jwt);
-        return jwt;
-    }
-
-    private String askForCredentials() {
-        publish("login","Username:");
-        String username = parseInput("body",listenForResponse());
-        publish("login","Password:");
-        String password = parseInput("body",listenForResponse());
-        return verifyLogin(username, password);
-    }
-
-    private String verifyLogin(String username, String password) {
-        if (username.equals(db.getUsername()) && password.equals(db.getPassword())){
-            try {
-                String jws = Jwts.builder().setSubject(username).signWith(key).compact();
-                return jws;
-
-            } catch (JwtException e) {
-                e.printStackTrace();
-            }
-        }
-        return "wrong";
-    }
-
-    private String listenForResponse() {
+    String listenForResponse() {
         try {
             String response;
             while(shouldRun){
@@ -167,7 +107,7 @@ public class ClientHandler extends Thread {
         return "ListenForResponse is not working if we end up here...";
     }
 
-    private void publish(String state, String body) {
+    void publish(String state, String body) {
         JSONObject message = new JSONObject();
         message.put("state", state);
         message.put("body", body);
@@ -177,7 +117,7 @@ public class ClientHandler extends Thread {
         dout.flush();
     }
 
-    private void closeConnection(){
+    void closeConnection(){
         publish("quit", null);
         System.out.println("Closing thread #" + this.getId());
         try {
